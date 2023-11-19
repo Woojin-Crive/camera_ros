@@ -8,7 +8,7 @@ def generate_launch_description():
     return LaunchDescription(
         [
             DeclareLaunchArgument("width", default_value="640", description="Camera image width"),
-            DeclareLaunchArgument("height", default_value="320", description="Camera image height"),
+            DeclareLaunchArgument("height", default_value="360", description="Camera image height"),
             DeclareLaunchArgument("log_level", default_value="debug", description="Log level (e.g., debug)"),
             # You can add other launch arguments as needed.
             # Run the camera_node with the specified parameters.
@@ -28,6 +28,12 @@ def generate_launch_description():
                 ],
                 remappings=[],  # Add remappings if necessary.
                 arguments=["--log-level", LaunchConfiguration("log_level")],
+            ),
+            Node(
+                package="image_module",
+                executable="image_crop",
+                name="image_crop",
+                output="screen",
             ),
             # You can add additional nodes or actions here as needed.
         ]
