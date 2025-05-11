@@ -5,8 +5,8 @@ services:
     #   context: .
     #   dockerfile: Dockerfile
     #   args:
-    #     ROS_DISTRO: jazzy
-    image: dnldnwls1123/ros:jazzy-camera-ros
+    #     ROS_DISTRO: ${ROS_DISTRO:-jazzy}
+    image: dnldnwls1123/ros:${ROS_DISTRO:-jazzy}-camera-ros
     tty: true
     restart: always
     cap_add:

@@ -29,7 +29,15 @@ RUN apt update && apt install -y \
     libqt5widgets5 \
     cmake \
     libglib2.0-dev \
-    libgstreamer-plugins-base1.0-dev
+    libgstreamer-plugins-base1.0-dev \
+    libudev-dev \
+    tmux \
+    iproute2 \
+    wget \
+    nano
+
+RUN python3 -m pip config set global.break-system-packages true
+RUN pip3 install --upgrade meson
 
 WORKDIR /root/libcamera
 RUN git clone https://github.com/raspberrypi/libcamera.git . && \
@@ -38,25 +46,19 @@ RUN git clone https://github.com/raspberrypi/libcamera.git . && \
     ninja -C build install && \
     ldconfig
 
-RUN apt install -y \
-    libudev-dev \
-    tmux \
-    iproute2 \
-    wget \
-    nano
-
 WORKDIR /root/colcon_ws/src
 
-RUN git clone https://github.com/christianrauch/camera_ros.git
+RUN git clone https://github.com/Woojin-Crive/camera_ros.git
 
 WORKDIR /root/colcon_ws
 RUN rosdep update && \
-    rosdep install --from-paths ./src -i -y -r --rosdistro ${ROS_DISTRO} && \
-    /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && colcon build --symlink-install" && \
+    rosdep install --from-paths ./src -i -y -r --skip-keys libcamera && \
+    /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release" && \
     echo 'source /opt/ros/${ROS_DISTRO}/setup.bash' >> /root/.bashrc && \
     echo 'source /root/colcon_ws/install/setup.bash' >> /root/.bashrc && \
+    echo 'alias camera="ros2 launch camera_ros camera.launch.py"' >> /root/.bashrc && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /root
 
-RUN echo "alias cm='colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release'" >> ~/.bashrc
+RUN echo "alias cb='colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release'" >> ~/.bashrc
