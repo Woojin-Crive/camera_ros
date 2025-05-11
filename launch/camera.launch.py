@@ -42,6 +42,19 @@ def generate_launch_description() -> LaunchDescription:
         description="pixel format"
     )
 
+    # Add image_view parameter
+    image_view_param_name = "image_view"
+    image_view_param_default = "false"
+    image_view_param = LaunchConfiguration(
+        image_view_param_name,
+        default=image_view_param_default,
+    )
+    image_view_launch_arg = DeclareLaunchArgument(
+        image_view_param_name,
+        default_value=image_view_param_default,
+        description="whether to launch image_view node"
+    )
+
     # camera node
     composable_nodes = [
         ComposableNode(
@@ -49,17 +62,17 @@ def generate_launch_description() -> LaunchDescription:
             plugin='camera::CameraNode',
             parameters=[{
                 "camera": camera_param,
+                "sensor_mode": "2304:1296",
                 "width": 640,
-                "height": 480,
+                "height": 360,
                 "format": format_param,
             }],
             extra_arguments=[{'use_intra_process_comms': True}],
         ),
-
     ]
 
     # optionally add ImageViewNode to show camera image
-    if has_resource("packages", "image_view"):
+    if has_resource("packages", "image_view") and image_view_param.perform(None) == "true":
         composable_nodes += [
             ComposableNode(
                 package='image_view',
@@ -82,4 +95,5 @@ def generate_launch_description() -> LaunchDescription:
         container,
         camera_launch_arg,
         format_launch_arg,
+        image_view_launch_arg,
     ])
