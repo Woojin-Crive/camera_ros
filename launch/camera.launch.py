@@ -1,6 +1,7 @@
 from ament_index_python.resources import has_resource
 
 from launch.actions import DeclareLaunchArgument
+from launch.conditions import IfCondition
 from launch.launch_description import LaunchDescription
 from launch.substitutions import LaunchConfiguration
 
@@ -42,17 +43,13 @@ def generate_launch_description() -> LaunchDescription:
         description="pixel format"
     )
 
-    # Add image_view parameter
-    image_view_param_name = "image_view"
-    image_view_param_default = "false"
-    image_view_param = LaunchConfiguration(
-        image_view_param_name,
-        default=image_view_param_default,
-    )
-    image_view_launch_arg = DeclareLaunchArgument(
-        image_view_param_name,
-        default_value=image_view_param_default,
-        description="whether to launch image_view node"
+    use_image_view_name = "use_image_view"
+    use_image_view_default = "false"
+    use_image_view_param = LaunchConfiguration(use_image_view_name)
+    use_image_view_launch_arg = DeclareLaunchArgument(
+        use_image_view_name,
+        default_value=use_image_view_default,
+        description="Whether to launch image_view (true/false)"
     )
 
     # camera node
@@ -71,18 +68,19 @@ def generate_launch_description() -> LaunchDescription:
         ),
     ]
 
-    # optionally add ImageViewNode to show camera image
-    if has_resource("packages", "image_view") and image_view_param.perform(None) == "true":
-        composable_nodes += [
+    # image_view node (conditionally included)
+    if has_resource("packages", "image_view"):
+        composable_nodes.append(
             ComposableNode(
                 package='image_view',
                 plugin='image_view::ImageViewNode',
                 remappings=[('/image', '/camera/image_raw')],
                 extra_arguments=[{'use_intra_process_comms': True}],
-            ),
-        ]
+                condition=IfCondition(use_image_view_param),
+            )
+        )
 
-    # composable nodes in single container
+    # Single container with all nodes
     container = ComposableNodeContainer(
         name='camera_container',
         namespace='',
@@ -92,8 +90,8 @@ def generate_launch_description() -> LaunchDescription:
     )
 
     return LaunchDescription([
-        container,
         camera_launch_arg,
         format_launch_arg,
-        image_view_launch_arg,
+        use_image_view_launch_arg,
+        container,
     ])
