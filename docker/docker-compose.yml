@@ -1,11 +1,12 @@
 services:
   ros2:
     container_name: camera_ros
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        ROS_DISTRO: jazzy
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    #   args:
+    #     ROS_DISTRO: jazzy
+    image: dnldnwls1123/ros:jazzy-camera-ros
     tty: true
     restart: always
     cap_add:
